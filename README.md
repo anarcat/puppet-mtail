@@ -12,7 +12,8 @@ Puppet.
 Setup
 -----
 
-No particular setup is required for this module.
+The module depends on the `apt` module to upgrade `mtail` to Debian
+bullseye's version.
 
 Usage
 -----
@@ -44,6 +45,9 @@ Assumes your package manager knows about mtail.
 
 Tested on Debian buster, compatibility with other versions and
 distributions unknown.
+
+Will upgrade mtail to the bullseye version at least if not present,
+because of issues in that older mtail version from buster.
 
 Development
 -----------

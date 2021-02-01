@@ -20,6 +20,26 @@ class mtail(
   package { 'pcregrep':
     ensure => $ensure,
   }
+  # before BULLSEYE, add mtail from bullseye
+  if versioncmp($::lsbmajdistrelease, '11') <= 0 {
+    apt::source { 'bullseye':
+      location => 'https://mirror.hetzner.de/debian/packages/',
+      release  => 'bullseye',
+      repos    => 'main',
+    }
+    apt::pin { 'bullseye':
+      explanation => 'disable upgrades to bullseye',
+      priority    => 1,
+      codename    => 'bullseye',
+    }
+    apt::pin { 'mtail':
+      explanation => 'mtail from buster and earlier is buggy, see trac#33951',
+      packages    => ['mtail'],
+      priority    => 500,
+      codename    => 'bullseye',
+      notify      => Package['mtail'],
+    }
+  }
   service { 'mtail':
     ensure  => $service_ensure,
     require => Package['mtail'],
