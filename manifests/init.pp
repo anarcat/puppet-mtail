@@ -34,7 +34,7 @@ class mtail(
         codename    => 'bullseye',
       }
       apt::pin { 'mtail':
-        explanation => 'mtail from buster and earlier is buggy, see trac#33951',
+        explanation => 'mtail from buster and earlier is buggy, see https://gitlab.torproject.org/tpo/tpa/team/-/issues/33951',
         packages    => ['mtail'],
         priority    => 500,
         codename    => 'bullseye',
