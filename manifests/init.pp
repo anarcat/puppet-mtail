@@ -6,6 +6,13 @@
 # @param scrape_job if enabled, will export a `prometheus::scrape_job`
 #                   for the prometheus central server to collect
 # @param scrape_job_labels which labels to add to the exported job
+# @param firewall which firewall to configure to allow connexions. hackish.
+#
+# Ideally, this would parse logs directly piped from syslog, so that
+# we wouldn't have to specify conflicting LOGS parameters from
+# different callers. But this requires piping (e.g.) Nginx access logs
+# into syslog, which is currently a little bit of a problem:
+# https://gitlab.torproject.org/tpo/tpa/team/-/issues/32461
 class mtail(
   Enum['present','absent'] $ensure  = 'present',
   String $logs                      = undef,
@@ -15,6 +22,7 @@ class mtail(
     'alias'   => $::hostname,
     'classes' => join(lookup('classes', Data, 'first', []), ','),
   },
+  Optional['ferm'] $firewall        = 'ferm',
 ) {
   if $ensure == 'present' {
     $service_ensure = 'running'
@@ -86,6 +94,12 @@ class mtail(
         targets  => ["${::fqdn}:3903"],
         labels   => $scrape_job_labels,
       }
+    }
+    if $firewall == 'ferm' {
+      # realize the allow rules defined on the prometheus server(s)
+      # this is expected to be exported on the Prometheus server so
+      # that it is realized here
+      Ferm::Rule <<| tag == 'profile::prometheus::server-mtail-exporter' |>>
     }
   }
 }
