@@ -3,10 +3,18 @@
 # @param ensure to install or remove all resources in this class
 # @param logs which log files to parse, if not default
 # @param program_directory where the programs should be stored
+# @param scrape_job if enabled, will export a `prometheus::scrape_job`
+#                   for the prometheus central server to collect
+# @param scrape_job_labels which labels to add to the exported job
 class mtail(
-  Enum['present','absent'] $ensure = 'present',
-  String $logs                     = undef,
-  String $program_directory        = '/etc/mtail',
+  Enum['present','absent'] $ensure  = 'present',
+  String $logs                      = undef,
+  String $program_directory         = '/etc/mtail',
+  Boolean $scrape_job               = true,
+  Optional[Hash] $scrape_job_labels = {
+    'alias'   => $::hostname,
+    'classes' => join(lookup('classes', Data, 'first', []), ','),
+  },
 ) {
   if $ensure == 'present' {
     $service_ensure = 'running'
@@ -69,6 +77,14 @@ class mtail(
         line    => "LOGS=${logs}",
         notify  => Service['mtail'],
         require => Package['mtail'],
+      }
+    }
+    if $scrape_job {
+      # this is pretty much cargo-culted from prometheus::daemon
+      @@prometheus::scrape_job { "${::fqdn}:3903":
+        job_name => 'mtail',
+        targets  => ["${::fqdn}:3903"],
+        labels   => $scrape_job_labels,
       }
     }
   }
