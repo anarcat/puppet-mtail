@@ -121,32 +121,32 @@ counter spamassassin_spam_total
     /smtpd\[/ {
       / connect from / {
         postfix_smtpd_connects_total[$postfix_instance]++
-        }
+      }
       / disconnect from / {
         postfix_smtpd_disconnects_total[$postfix_instance]++
-        }
+      }
       / warning: hostname \S+ does not resolve to address / {
         postfix_smtpd_forward_confirmed_reverse_dns_errors_total[$postfix_instance]++
-        }
+      }
       / lost connection after (\w+) from / {
         postfix_smtpd_connections_lost_total[$postfix_instance][$1]++
-        }
+      }
       /: client=/ {
         postfix_smtpd_messages_processed_total[$postfix_instance]++
-        }
+      }
       /: reject: RCPT from \S+: (\d+) / {
         postfix_smtpd_messages_rejected_total[$postfix_instance][$1]++
         / Rate limit / {
           postfix_smtpd_messages_ratelimited_total[$postfix_instance]++
-          }
-        }
-      /warning: \S+: SASL \S+ authentication failed: / {
-        postfix_smtpd_sasl_authentication_failures_total[$postfix_instance]++
-        }
-      // + SMTPD_TLS_LINE {
-        postfix_smtpd_tls_connections_total[$postfix_instance][$1][$2][$3][$4][$5]++
         }
       }
+      /warning: \S+: SASL \S+ authentication failed: / {
+        postfix_smtpd_sasl_authentication_failures_total[$postfix_instance]++
+      }
+      // + SMTPD_TLS_LINE {
+        postfix_smtpd_tls_connections_total[$postfix_instance][$1][$2][$3][$4][$5]++
+      }
+    }
   }
 
   /spamd: clean message \((?P<score>[0-9.]+)\/[0-9.]+\) for/ {
