@@ -40,6 +40,14 @@ class mtail(
         codename    => 'bullseye',
         notify      => Package['mtail'],
       }
+      Package['mtail'] {
+        require => [
+          Apt::Source['bullseye'],
+          Apt::Pin['mtail'],
+          Apt::Pin['bullseye'],
+          Exec['apt_update'],
+        ],
+      }
     }
   }
   service { 'mtail':
@@ -50,15 +58,17 @@ class mtail(
     # XXX: old-style init.d configuration, probably belongs in a systemd
     # override instead
     file_line { 'default-mtail-enable':
-      path   => '/etc/default/mtail',
-      line   => 'ENABLED=1',
-      notify => Service['mtail'],
+      path    => '/etc/default/mtail',
+      line    => 'ENABLED=1',
+      notify  => Service['mtail'],
+      require => Package['mtail'],
     }
     if $logs {
       file_line { 'default-mtail-logs':
-        path   => '/etc/default/mtail',
-        line   => "LOGS=${logs}",
-        notify => Service['mtail'],
+        path    => '/etc/default/mtail',
+        line    => "LOGS=${logs}",
+        notify  => Service['mtail'],
+        require => Package['mtail'],
       }
     }
   }
