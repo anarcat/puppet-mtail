@@ -1,0 +1,56 @@
+# Define the exported metrics.
+counter nginx_http_request_total
+counter nginx_http_request_details_total by vhost, request_method, code, backend, upstream_cache_status
+counter nginx_http_request_details_bytes by vhost, request_method, code, backend, upstream_cache_status
+counter nginx_http_request_time_seconds_bucket by le, vhost, request_method, code, backend, upstream_cache_status
+
+# the "cache" format looks like this in nginx:
+#
+# $server_name:$server_port $remote_addr - $remote_user [$time_local] "$request" $status $body_bytes_sent "$http_referer" "$http_user_agent" $request_time $upstream_addr $upstream_response_time $upstream_cache_status
+#
+# It's equivalent to NCSA's extended/combined log formats with the last 4 fields added.
+/(?P<vhost>[-0-9A-Za-z._:]+) / + # $server_name:$server_port
+/(?P<remote_addr>[0-9a-f\.:]+) - / + # $remote_addr
+/(?P<user>[\w\d:.-]+) \[[^\]]+\] / + # $remote_user [$time_local]
+/"(?P<request_method>\w+) (?P<request_uri>\S+) (?P<http_version>HTTP\/[0-9\.]+)" / + # $request
+/(?P<status>\d+) / + # $status
+/((?P<response_size>\d+)|-) / + # $body_bytes_sent
+/"(?P<referer>[^"]*)" / + # $http_referer
+/"[^"]*" / + # $http_user_agent
+/(?P<request_time>\d+\.\d+) / + # $request_time
+/(?P<upstream_addr>[-0-9A-Za-z._:]+) / + # $upstream_addr
+/((?P<upstream_response_time>\d+\.\d+)|-) / + # $upstream_response_time
+/(?P<upstream_cache_status>\S+)/ + # $upstream_cache_status
+/$/ {
+    nginx_http_request_total++
+
+    nginx_http_request_details_total[$vhost][$request_method][$status][$upstream_addr][$upstream_cache_status]++
+    nginx_http_request_details_bytes[$vhost][$request_method][$status][$upstream_addr][$upstream_cache_status] += $response_size
+
+    # sort hits per bucket
+    # XXX: this should be done with a "histogram" type instead of counter
+    # https://google.github.io/mtail/Programming-Guide.html#histograms
+    # supported starting from 3.0.0-rc25 only
+    $request_time < 0.005 {
+        nginx_http_request_time_seconds_bucket["0.005"][$vhost][$request_method][$status][$upstream_addr][$upstream_cache_status]++
+    }
+    $request_time < 0.01 {
+        nginx_http_request_time_seconds_bucket["0.01"][$vhost][$request_method][$status][$upstream_addr][$upstream_cache_status]++
+    }
+    $request_time < 0.05 {
+        nginx_http_request_time_seconds_bucket["0.05"][$vhost][$request_method][$status][$upstream_addr][$upstream_cache_status]++
+    }
+    $request_time < 0.1 {
+        nginx_http_request_time_seconds_bucket["0.1"][$vhost][$request_method][$status][$upstream_addr][$upstream_cache_status]++
+    }
+    $request_time < 0.5 {
+        nginx_http_request_time_seconds_bucket["0.5"][$vhost][$request_method][$status][$upstream_addr][$upstream_cache_status]++
+    }
+    $request_time < 1 {
+        nginx_http_request_time_seconds_bucket["1"][$vhost][$request_method][$status][$upstream_addr][$upstream_cache_status]++
+    }
+    $request_time < 5 {
+        nginx_http_request_time_seconds_bucket["5"][$vhost][$request_method][$status][$upstream_addr][$upstream_cache_status]++
+    }
+    nginx_http_request_time_seconds_bucket["inf"][$vhost][$request_method][$status][$upstream_addr][$upstream_cache_status]++
+}
