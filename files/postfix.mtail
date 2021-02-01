@@ -68,14 +68,17 @@ counter postfix_smtpd_sasl_authentication_failures_total by postfix_instance
 # Total number of incoming TLS connections.
 counter postfix_smtpd_tls_connections_total by postfix_instance, trust, protocol, cipher, secret_bits, algorithm_bits
 
+# Total number of unrecognized log lines
+counter postfix_unsupported_log_entries_total by postfix_instance, service
+
 # Spamassassin classification counters (ham/spam).
 counter spamassassin_ham_total
 counter spamassassin_spam_total
 
 @syslog {
-  /(?P<postfix_instance>postfix[-a-z]*)\// {
+  /(?P<postfix_instance>postfix[-a-z]*)\/(?P<service>[-a-z]+)\[/ {
 
-    /cleanup\[/ {
+    $service == "cleanup" {
       /: message-id=</ {
         postfix_cleanup_messages_processed_total[$postfix_instance]++
       }
@@ -84,7 +87,7 @@ counter spamassassin_spam_total
       }
     }
 
-    /qmgr\[/ {
+    $service == "qmgr" {
       #// + QMGR_INSERT_LINE {
       #  postfix_qmgr_messages_inserted_recipients[$postfix_instance] = $nrcpt
       #  postfix_qmgr_messages_inserted_size_bytes[$postfix_instance] = $size
@@ -94,7 +97,7 @@ counter spamassassin_spam_total
       }
     }
 
-    /smtp\[/ {
+    $service == "smtp" {
         #// + DELIVERY_DELAY_LINE {
         #  # 1st field: before_queue_manager
         #  postfix_smtp_delivery_delay_seconds[$postfix_instance]["before_queue_manager"] = $bqm
@@ -118,7 +121,7 @@ counter spamassassin_spam_total
         }
       }
 
-    /smtpd\[/ {
+    $service == "smtpd" {
       / connect from / {
         postfix_smtpd_connects_total[$postfix_instance]++
       }
@@ -146,6 +149,10 @@ counter spamassassin_spam_total
       // + SMTPD_TLS_LINE {
         postfix_smtpd_tls_connections_total[$postfix_instance][$1][$2][$3][$4][$5]++
       }
+    }
+
+    otherwise {
+      postfix_unsupported_log_entries_total[$postfix_instance][$service]++
     }
   }
 
