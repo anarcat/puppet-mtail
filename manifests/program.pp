@@ -17,5 +17,6 @@ define mtail::program(
     content => $content,
     source  => $source,
     notify  => Service['mtail'],
+    require => Package['mtail'],
   }
 }
