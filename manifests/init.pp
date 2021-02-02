@@ -19,7 +19,7 @@ class mtail(
   String $program_directory         = '/etc/mtail',
   Boolean $scrape_job               = true,
   Optional[Hash] $scrape_job_labels = {
-    'alias'   => $::hostname,
+    'alias'   => $::fqdn,
     'classes' => join(lookup('classes', Data, 'first', []), ','),
   },
   Optional['ferm'] $firewall        = 'ferm',
