@@ -76,7 +76,7 @@ counter spamassassin_ham_total
 counter spamassassin_spam_total
 
 @syslog {
-  /(?P<postfix_instance>postfix[-a-z]*)\/(?P<service>[-a-z]+)\[/ {
+  /(?P<postfix_instance>postfix[-a-z]*)\/(?P<service>[-a-z\/]+)\[/ {
 
     $service == "cleanup" {
       /: message-id=</ {
@@ -97,7 +97,7 @@ counter spamassassin_spam_total
       }
     }
 
-    $service == "smtp" {
+    $service =~ /smtp$/ {
         #// + DELIVERY_DELAY_LINE {
         #  # 1st field: before_queue_manager
         #  postfix_smtp_delivery_delay_seconds[$postfix_instance]["before_queue_manager"] = $bqm
