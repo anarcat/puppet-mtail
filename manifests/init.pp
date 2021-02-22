@@ -89,7 +89,7 @@ class mtail(
     }
     if $scrape_job {
       # this is pretty much cargo-culted from prometheus::daemon
-      @@prometheus::scrape_job { "${::fqdn}:3903":
+      @@prometheus::scrape_job { "${::fqdn}_3903":
         job_name => 'mtail',
         targets  => ["${::fqdn}:3903"],
         labels   => $scrape_job_labels,
