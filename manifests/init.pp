@@ -38,7 +38,7 @@ class mtail(
   }
   if $::osfamily == 'Debian' {
     # before BULLSEYE, add mtail from bullseye
-    if versioncmp($::lsbmajdistrelease, '11') <= 0 {
+    if versioncmp($::lsbmajdistrelease, '11') < 0 {
       apt::source { 'bullseye':
         location => 'https://mirror.hetzner.de/debian/packages/',
         release  => 'bullseye',
