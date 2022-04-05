@@ -20,7 +20,7 @@ class mtail(
   Boolean $scrape_job               = true,
   Optional[Hash] $scrape_job_labels = {
     'alias'   => $::fqdn,
-    'classes' => join(lookup('classes', Data, 'first', []), ','),
+    'classes' => "role::${pick($::role, 'undefined')}",
   },
   Optional['ferm'] $firewall        = 'ferm',
 ) {
