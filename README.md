@@ -38,6 +38,14 @@ using the `mtail::program` directive:
 Notice how the `.mtail` extension is not required in the resource
 name: it is automatically added.
 
+Postfix queue sizes
+---------------------
+
+The Postfix mtail program does not know about queue sizes, naturally,
+since that information is not included in logs. The `mtail::postfix`
+class deploys a cron job that pushes metrics in the node exporter text
+files collector.
+
 Limitations
 -----------
 

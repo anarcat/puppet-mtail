@@ -1,0 +1,20 @@
+#!/bin/sh
+
+test -x /usr/sbin/postmulti || exit 0
+
+queues="active bounce corrupt deferred flush hold incoming maildrop"
+instances=$(/usr/sbin/postmulti -l | awk '{print $1}')
+
+for instance in ${instances}; do
+    if [ "x${instance}" = "x-" ]; then
+        instance=postfix
+    fi
+    spool_dir=/var/spool/${instance}
+    for queue in ${queues}; do
+        test -d ${spool_dir}/${queue} || continue
+        printf 'postfix_queue_length{postfix_instance="%s",queue="%s"} ' $instance $queue
+        find "${spool_dir}/${queue}" -type f -print | wc -l
+    done
+done
+
+exit 0
