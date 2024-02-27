@@ -83,6 +83,7 @@ class mtail(
       file_line { 'default-mtail-logs':
         path    => '/etc/default/mtail',
         line    => "LOGS=${logs}",
+        match   => '^LOGS=',
         notify  => Service['mtail'],
         require => Package['mtail'],
       }
