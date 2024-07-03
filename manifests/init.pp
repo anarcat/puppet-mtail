@@ -69,6 +69,7 @@ class mtail(
   service { 'mtail':
     ensure  => $service_ensure,
     require => Package['mtail'],
+    enable  => $ensure == 'present',
   }
   if $ensure == 'present' {
     # XXX: old-style init.d configuration, probably belongs in a systemd
