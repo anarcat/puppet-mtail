@@ -3,11 +3,13 @@
 # this exporter conflicts with the basic postfix exporter: they share
 # some metrics and shouldn't be scraped together!
 class mtail::postfix (
-  Boolean $scrape_job = true,
+  Boolean $scrape_job = $mtail::scrape_job,
+  Optional[Hash] $scrape_job_labels = $mtail::scrape_job_labels,
 ) {
   class { 'mtail':
     logs       => '/var/log/mail.log',
     scrape_job => $scrape_job,
+    scrape_job_labels => $scrape_job_labels,
   }
   mtail::program { 'postfix':
     source => 'puppet:///modules/mtail/postfix.mtail',
