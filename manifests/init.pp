@@ -33,8 +33,12 @@ class mtail(
     ensure => $ensure,
   }
   # to debug regexes
+  $pcregrep_ensure = $facts['os']['distro']['codename'] ? {
+    'bookworm' => $ensure,
+    default    => 'purged',
+  }
   package { 'pcregrep':
-    ensure => $ensure,
+    ensure => $pcregrep_ensure,
   }
   if $::osfamily == 'Debian' {
     # before BULLSEYE, add mtail from bullseye
