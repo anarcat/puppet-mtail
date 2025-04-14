@@ -19,7 +19,7 @@ class mtail(
   String $program_directory         = '/etc/mtail',
   Boolean $scrape_job               = true,
   Optional[Hash] $scrape_job_labels = {
-    'alias'   => $::fqdn,
+    'alias'   => $facts['networking']['fqdn'],
     'classes' => "role::${pick($::role, 'undefined')}",
   },
   Optional['ferm'] $firewall        = 'ferm',
@@ -32,9 +32,9 @@ class mtail(
   package { 'mtail':
     ensure => $ensure,
   }
-  if $::osfamily == 'Debian' {
+  if $facts['os']['family'] == 'Debian' {
     # before BULLSEYE, add mtail from bullseye
-    if versioncmp($::lsbmajdistrelease, '11') < 0 {
+    if versioncmp($facts['os']['distro']['release']['major'], '11') < 0 {
       apt::source { 'bullseye':
         location => 'https://mirror.hetzner.de/debian/packages/',
         release  => 'bullseye',
@@ -87,9 +87,9 @@ class mtail(
     }
     if $scrape_job {
       # this is pretty much cargo-culted from prometheus::daemon
-      @@prometheus::scrape_job { "${::fqdn}_3903":
+      @@prometheus::scrape_job { "${facts['networking']['fqdn']}_3903":
         job_name => 'mtail',
-        targets  => ["${::fqdn}:3903"],
+        targets  => ["${facts['networking']['fqdn']}:3903"],
         labels   => $scrape_job_labels,
       }
     }
