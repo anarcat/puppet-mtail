@@ -32,10 +32,6 @@ class mtail(
   package { 'mtail':
     ensure => $ensure,
   }
-  # to debug regexes
-  package { 'pcregrep':
-    ensure => $ensure,
-  }
   if $::osfamily == 'Debian' {
     # before BULLSEYE, add mtail from bullseye
     if versioncmp($::lsbmajdistrelease, '11') < 0 {
