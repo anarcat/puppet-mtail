@@ -17,19 +17,4 @@ class mtail::postfix (
     ensure => $ensure,
     source => 'puppet:///modules/mtail/postfix.mtail',
   }
-  file { '/usr/local/bin/postfix-queues-sizes':
-    ensure => $ensure,
-    source => 'puppet:///modules/mtail/postfix-queues-sizes',
-    mode   => '0555',
-  }
-  cron { 'prometheus-postfix-queues':
-    ensure  => $ensure,
-    command => '/usr/local/bin/postfix-queues-sizes | sponge /var/lib/prometheus/node-exporter/postfix-queues-sizes.prom',
-    minute  => '*',
-    user    => 'root',
-    require => [
-      File['/usr/local/bin/postfix-queues-sizes'],
-      File['/var/lib/prometheus/node-exporter'],
-    ],
-  }
 }
