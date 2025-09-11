@@ -32,36 +32,6 @@ class mtail(
   package { 'mtail':
     ensure => $ensure,
   }
-  if $facts['os']['family'] == 'Debian' {
-    # before BULLSEYE, add mtail from bullseye
-    if versioncmp($facts['os']['distro']['release']['major'], '11') < 0 {
-      apt::source { 'bullseye':
-        location => 'https://mirror.hetzner.de/debian/packages/',
-        release  => 'bullseye',
-        repos    => 'main',
-      }
-      apt::pin { 'bullseye':
-        explanation => 'disable upgrades to bullseye',
-        priority    => 1,
-        codename    => 'bullseye',
-      }
-      apt::pin { 'mtail':
-        explanation => 'mtail from buster and earlier is buggy, see https://gitlab.torproject.org/tpo/tpa/team/-/issues/33951',
-        packages    => ['mtail'],
-        priority    => 500,
-        codename    => 'bullseye',
-        notify      => Package['mtail'],
-      }
-      Package['mtail'] {
-        require => [
-          Apt::Source['bullseye'],
-          Apt::Pin['mtail'],
-          Apt::Pin['bullseye'],
-          Exec['apt_update'],
-        ],
-      }
-    }
-  }
   service { 'mtail':
     ensure  => $service_ensure,
     require => Package['mtail'],
