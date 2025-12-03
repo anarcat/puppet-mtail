@@ -1,7 +1,7 @@
 # mtail is a log counting software we use to derive metrics from logfiles
 #
 # @param ensure to install or remove all resources in this class
-# @param logs which log files to parse, if not default
+# @param logs which log files to parse, separated by commas, if not default
 # @param program_directory where the programs should be stored
 # @param scrape_job if enabled, will export a `prometheus::scrape_job`
 #                   for the prometheus central server to collect
@@ -14,28 +14,33 @@
 # into syslog, which is currently a little bit of a problem:
 # https://gitlab.torproject.org/tpo/tpa/team/-/issues/32461
 class mtail(
-  Enum['present','absent'] $ensure  = 'present',
-  String $logs                      = undef,
-  String $program_directory         = '/etc/mtail',
-  Boolean $scrape_job               = true,
-  Optional[Hash] $scrape_job_labels = {
+  Enum['present','absent'] $ensure                    = 'present',
+  Optional[Enum['present','absent']] $service_ensure  = undef,
+  String $logs                                        = undef,
+  String $program_directory                           = '/etc/mtail',
+  Boolean $scrape_job                                 = true,
+  Optional[Hash] $scrape_job_labels                   = {
     'alias'   => $facts['networking']['fqdn'],
     'classes' => "role::${pick($::role, 'undefined')}",
   },
   Optional['ferm'] $firewall        = 'ferm',
 ) {
-  if $ensure == 'present' {
-    $service_ensure = 'running'
+  if $service_ensure == undef {
+    if $ensure == 'present' {
+      $_service_ensure = 'running'
+    } else {
+      $_service_ensure = 'stopped'
+    }
   } else {
-    $service_ensure = 'stopped'
+    $_service_ensure = $service_ensure
   }
   package { 'mtail':
     ensure => $ensure,
   }
   service { 'mtail':
-    ensure  => $service_ensure,
+    ensure  => $_service_ensure,
     require => Package['mtail'],
-    enable  => $ensure == 'present',
+    enable  => $_service_ensure == 'present',
   }
   if $ensure == 'present' {
     # XXX: old-style init.d configuration, probably belongs in a systemd

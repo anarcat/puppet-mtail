@@ -1,0 +1,53 @@
+<%- |
+Integer $port,
+String[1] $logs,
+String[1] $program_directory,
+| -%>
+
+[Unit]
+Description=mtail - extract internal monitoring data from application logs for collection in a timeseries database
+Documentation=https://jaqx0r.github.io/mtail/
+Requires=local-fs.target network.target
+Before=nss-user-lookup.target
+After=local-fs.target network.target
+
+[Service]
+Type=exec
+Restart=on-failure
+User=mtail
+
+ExecStart=/usr/bin/mtail --progs <%= $program_directory %> --logtostderr --port <%= $port %> --logs <%= $logs %>
+ExecReload=/bin/kill -HUP $MAINPID
+TimeoutStopSec=20s
+
+# Limit memory leaks
+MemoryMax=1G
+MemorySwapMax=0
+
+# Various hardening options
+ProtectSystem=full
+AmbientCapabilities=
+CapabilityBoundingSet=
+KeyringMode=private
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+MountFlags=private
+NoNewPrivileges=yes
+PrivateDevices=yes
+PrivateTmp=yes
+PrivateUsers=yes
+ProtectClock=yes
+ProtectControlGroups=yes
+ProtectHome=yes
+ProtectHostname=yes
+ProtectKernelLogs=yes
+ProtectKernelModules=yes
+ProtectKernelTunables=yes
+RemoveIPC=yes
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictNamespaces=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+
+[Install]
+WantedBy=default.target
