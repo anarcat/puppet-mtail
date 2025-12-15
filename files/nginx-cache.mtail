@@ -2,7 +2,7 @@
 counter nginx_http_request_total
 counter nginx_http_request_details_total by vhost, request_method, code, backend, upstream_cache_status
 counter nginx_http_request_details_bytes by vhost, request_method, code, backend, upstream_cache_status
-counter nginx_http_request_time_seconds_bucket by le, vhost, request_method, code, backend, upstream_cache_status
+histogram nginx_http_request_time_seconds_bucket 0.005, 0.01, 0.05, 0.5, 1, 5 by request_method, status
 
 # the "cache" format looks like this in nginx:
 #
@@ -28,29 +28,5 @@ counter nginx_http_request_time_seconds_bucket by le, vhost, request_method, cod
     nginx_http_request_details_bytes[$vhost][$request_method][$status][$upstream_addr][$upstream_cache_status] += $response_size
 
     # sort hits per bucket
-    # XXX: this should be done with a "histogram" type instead of counter
-    # https://google.github.io/mtail/Programming-Guide.html#histograms
-    # supported starting from 3.0.0-rc25 only
-    $request_time < 0.005 {
-        nginx_http_request_time_seconds_bucket["0.005"][$vhost][$request_method][$status][$upstream_addr][$upstream_cache_status]++
-    }
-    $request_time < 0.01 {
-        nginx_http_request_time_seconds_bucket["0.01"][$vhost][$request_method][$status][$upstream_addr][$upstream_cache_status]++
-    }
-    $request_time < 0.05 {
-        nginx_http_request_time_seconds_bucket["0.05"][$vhost][$request_method][$status][$upstream_addr][$upstream_cache_status]++
-    }
-    $request_time < 0.1 {
-        nginx_http_request_time_seconds_bucket["0.1"][$vhost][$request_method][$status][$upstream_addr][$upstream_cache_status]++
-    }
-    $request_time < 0.5 {
-        nginx_http_request_time_seconds_bucket["0.5"][$vhost][$request_method][$status][$upstream_addr][$upstream_cache_status]++
-    }
-    $request_time < 1 {
-        nginx_http_request_time_seconds_bucket["1"][$vhost][$request_method][$status][$upstream_addr][$upstream_cache_status]++
-    }
-    $request_time < 5 {
-        nginx_http_request_time_seconds_bucket["5"][$vhost][$request_method][$status][$upstream_addr][$upstream_cache_status]++
-    }
-    nginx_http_request_time_seconds_bucket["inf"][$vhost][$request_method][$status][$upstream_addr][$upstream_cache_status]++
+    nginx_http_request_seconds_bucket[$request_method][$status] = $request_time
 }
