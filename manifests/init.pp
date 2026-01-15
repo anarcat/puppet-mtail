@@ -15,7 +15,7 @@
 # https://gitlab.torproject.org/tpo/tpa/team/-/issues/32461
 class mtail(
   Enum['present','absent'] $ensure                    = 'present',
-  Optional[Enum['present','absent']] $service_ensure  = undef,
+  Optional[Enum['running','stopped']] $service_ensure = undef,
   String $logs                                        = undef,
   String $program_directory                           = '/etc/mtail',
   Boolean $scrape_job                                 = true,
@@ -23,7 +23,7 @@ class mtail(
     'alias'   => $facts['networking']['fqdn'],
     'classes' => "role::${pick($::role, 'undefined')}",
   },
-  Optional['ferm'] $firewall        = 'ferm',
+  Optional['ferm'] $firewall                          = 'ferm',
 ) {
   if $service_ensure == undef {
     if $ensure == 'present' {
@@ -40,7 +40,7 @@ class mtail(
   service { 'mtail':
     ensure  => $_service_ensure,
     require => Package['mtail'],
-    enable  => $_service_ensure == 'present',
+    enable  => $_service_ensure == 'running',
   }
   if $ensure == 'present' {
     # XXX: old-style init.d configuration, probably belongs in a systemd

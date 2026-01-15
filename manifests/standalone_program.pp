@@ -48,9 +48,9 @@ define mtail::standalone_program(
     require => File["${program_directory}/${name}"],
   }
   systemd::unit_file { "mtail_${name}_${port}.service":
-    ensure  => present,
-    enable  => true,
-    active  => true,
+    ensure  => $ensure,
+    enable  => $ensure == 'present',
+    active  => $ensure == 'present',
     content => epp('mtail/systemd.epp', {
       logs              => $logs,
       port              => $port,
