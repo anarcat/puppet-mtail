@@ -76,7 +76,7 @@ counter spamassassin_ham_total
 counter spamassassin_spam_total
 
 @syslog {
-  /(?P<postfix_instance>postfix[-a-z]*)\/(?P<service>[-a-z\/]+)\[/ {
+  /(?P<postfix_instance>postfix[-a-z]*)\/(?P<service>[-a-z0-9\/]+)\[/ {
 
     $service == "cleanup" {
       /: message-id=</ {
